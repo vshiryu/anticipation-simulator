@@ -8,15 +8,28 @@ import { useContext, useState } from "react";
 import axios from "axios";
 import { baseApi } from "../../constants/api";
 import { ResponseContext } from "../../Providers/Response";
+import { FormStyled } from "./style";
 
 export const Form = (): JSX.Element => {
   const [formData, setFormData] = useState<FormData>();
   const { responseData, setResponseData } = useContext(ResponseContext);
 
   const formSchema = yup.object().shape({
-    amount: yup.number().required(),
-    installments: yup.number().required(),
-    mdr: yup.number().required(),
+    amount: yup
+      .number()
+      .min(1000)
+      .required()
+      .typeError("Insira um número válido"),
+    installments: yup
+      .number()
+      .min(0)
+      .max(12)
+      .required()
+      .typeError("Insira um número válido"),
+    mdr: yup
+      .number()
+      .required()
+      .typeError("Insira um número válido"),
   });
 
   const {
@@ -27,10 +40,10 @@ export const Form = (): JSX.Element => {
     resolver: yupResolver(formSchema),
   });
 
-  const onSubmit: SubmitHandler<FormData> = (formData: FormData) => {
+  const onSubmit: SubmitHandler<FormData> = async (formData: FormData) => {
     setFormData(formData);
 
-    axios
+    await axios
       .post(`${baseApi}`, formData)
       .then((res) => {
         console.log(res.data);
@@ -40,7 +53,7 @@ export const Form = (): JSX.Element => {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
+    <FormStyled onSubmit={handleSubmit(onSubmit)}>
       <div>
         <label>Informe o valor da venda</label>
         <input {...register("amount")}></input>
@@ -53,7 +66,7 @@ export const Form = (): JSX.Element => {
         <label>Informe o percentual de MDR</label>
         <input {...register("mdr")}></input>
       </div>
-      <input type="submit" />
-    </form>
+      <button type="submit">Enviar</button>
+    </FormStyled>
   );
 };
